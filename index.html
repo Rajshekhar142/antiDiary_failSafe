@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LT-2.0 Failsafe</title>
+    <style>
+        /* Base Theme */
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: #FFF5EB;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #1f2937;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        h1, h2 {
+            margin-top: 0;
+            color: #4c1d95; /* Dark Violet */
+        }
+
+        h1 span {
+            background: linear-gradient(to right, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd6fe;
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            color: #1f2937;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: #8b5cf6;
+        }
+
+        .time-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .time-row .form-group {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(to right, #7c3aed, #3b82f6);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Log List Elements */
+        .log-item {
+            background: rgba(255, 255, 255, 0.6);
+            border-left: 4px solid #7c3aed;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .log-item.builder { border-left-color: #10b981; } /* Green */
+        .log-item.learner { border-left-color: #3b82f6; } /* Blue */
+        .log-item.casual { border-left-color: #f59e0b; } /* Yellow */
+
+        .log-details h3 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            color: #1f2937;
+        }
+
+        .log-details p {
+            margin: 0;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .log-meta {
+            text-align: right;
+            font-size: 12px;
+            font-weight: bold;
+            color: #6b7280;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .category-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: white;
+            background: #9ca3af;
+        }
+
+        .category-badge.builder { background: #10b981; }
+        .category-badge.learner { background: #3b82f6; }
+        .category-badge.casual { background: #f59e0b; }
+
+        .clear-btn {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 8px;
+            margin-top: 12px;
+        }
+        
+        .clear-btn:hover {
+            background: #fef2f2;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div style="text-align: center; margin-bottom: 10px;">
+            <h1>LT-2.0 <span>Failsafe</span></h1>
+            <p style="color: #6b7280; margin-top: -10px;">Local Static Prototype</p>
+        </div>
+
+        <div class="glass">
+            <h2>Add New Log</h2>
+            
+            <div class="form-group">
+                <label>Category</label>
+                <select id="category">
+                    <option value="builder">Builder</option>
+                    <option value="learner">Learner</option>
+                    <option value="casual">Casual</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Activity Description</label>
+                <input type="text" id="taskName" placeholder="What did you do?" autocomplete="off">
+            </div>
+
+            <div class="time-row">
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="time" id="startTime">
+                </div>
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="time" id="endTime">
+                </div>
+            </div>
+
+            <button onclick="saveLog()">Save Log Local</button>
+        </div>
+
+        <div class="glass">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="margin: 0;">Today's Logs</h2>
+                <span id="totalMins" style="font-weight: bold; color: #7c3aed;">0 mins</span>
+            </div>
+            
+            <div id="logsContainer">
+                </div>
+
+            <button class="clear-btn" onclick="clearLogs()">Clear Paper-transferred Logs</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Set current time as default
+        function setDefaultTimes() {
+            const now = new Date();
+            const timeString = now.toTimeString().slice(0,5);
+            document.getElementById('endTime').value = timeString;
+            
+            // Default start time 30 mins ago
+            const start = new Date(now.getTime() - 30 * 60000);
+            document.getElementById('startTime').value = start.toTimeString().slice(0,5);
+        }
+
+        // Initialize state
+        let logs = JSON.parse(localStorage.getItem('lt2_failsafe_logs')) || [];
+        setDefaultTimes();
+        renderLogs();
+
+        function saveLog() {
+            const category = document.getElementById('category').value;
+            const taskName = document.getElementById('taskName').value || 'Unspecified Task';
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+
+            if(!startTime || !endTime) return alert("Please select times.");
+
+            // Calculate duration in minutes
+            const startStr = "1970/01/01 " + startTime;
+            const endStr = "1970/01/01 " + endTime;
+            let diff = (new Date(endStr).getTime() - new Date(startStr).getTime()) / 60000;
+            if (diff < 0) diff += 24 * 60; // Handle overnight logs
+
+            const newLog = {
+                id: Date.now(),
+                category,
+                taskName,
+                startTime,
+                endTime,
+                duration: diff
+            };
+
+            // Save to array and local storage
+            logs.unshift(newLog);
+            localStorage.setItem('lt2_failsafe_logs', JSON.stringify(logs));
+            
+            // Reset input and re-render
+            document.getElementById('taskName').value = '';
+            setDefaultTimes();
+            renderLogs();
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            container.innerHTML = '';
+            let totalTime = 0;
+
+            if (logs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#9ca3af; font-style:italic;">No logs yet. Start building.</p>';
+            }
+
+            logs.forEach(log => {
+                totalTime += log.duration;
+                
+                const logEl = document.createElement('div');
+                logEl.className = `log-item ${log.category}`;
+                
+                logEl.innerHTML = `
+                    <div class="log-details">
+                        <h3>${log.taskName}</h3>
+                        <p>${log.startTime} - ${log.endTime}</p>
+                    </div>
+                    <div class="log-meta">
+                        <span class="category-badge ${log.category}">${log.category}</span>
+                        <span>${log.duration} mins</span>
+                    </div>
+                `;
+                container.appendChild(logEl);
+            });
+
+            // Update Total
+            document.getElementById('totalMins').innerText = `${totalTime} mins`;
+        }
+
+        function clearLogs() {
+            if(confirm("Are you sure? Only do this if you've noted them down on paper!")) {
+                logs = [];
+                localStorage.removeItem('lt2_failsafe_logs');
+                renderLogs();
+            }
+        }
+    </script>
+</body>
+</html>
