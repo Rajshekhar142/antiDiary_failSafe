@@ -1,325 +1,643 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LT-2.0 Failsafe</title>
-    <style>
-        /* Base Theme */
-        body {
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            background-color: #FFF5EB;
-            font-family: system-ui, -apple-system, sans-serif;
-            color: #1f2937;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LT-2.0 Failsafe</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
+  :root {
+    --bg: #0d0d0f;
+    --bg-surface: #141417;
+    --bg-card: #1a1a1f;
+    --bg-input: #111114;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.14);
+    --text-primary: #f0efe8;
+    --text-secondary: #7a7975;
+    --text-muted: #3e3d3a;
+    --builder: #1d9e75;
+    --builder-dim: rgba(29,158,117,0.12);
+    --builder-glow: rgba(29,158,117,0.2);
+    --learner: #7f77dd;
+    --learner-dim: rgba(127,119,221,0.12);
+    --learner-glow: rgba(127,119,221,0.2);
+    --casual: #ef9f27;
+    --casual-dim: rgba(239,159,39,0.12);
+    --casual-glow: rgba(239,159,39,0.2);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
 
-        /* Glassmorphism Classes */
-        .glass {
-            background: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        }
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+    display: flex;
+    justify-content: center;
+  }
 
-        h1, h2 {
-            margin-top: 0;
-            color: #4c1d95; /* Dark Violet */
-        }
+  .wrap {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 
-        h1 span {
-            background: linear-gradient(to right, #7c3aed, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+  /* Header */
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 8px;
+  }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+  .header-tag {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .live-clock {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
 
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border-hover); }
 
-        label {
-            font-size: 12px;
-            text-transform: uppercase;
-            font-weight: bold;
-            color: #6b7280;
-            letter-spacing: 0.5px;
-        }
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
 
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd6fe;
-            background: rgba(255, 255, 255, 0.7);
-            font-size: 16px;
-            color: #1f2937;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+  /* Form */
+  .form-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 
-        input:focus, select:focus {
-            border-color: #8b5cf6;
-        }
+  .input-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+  }
 
-        .time-row {
-            display: flex;
-            gap: 12px;
-        }
+  input, select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 11px 14px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--border-hover);
+    background: #16161a;
+  }
+  input::placeholder { color: var(--text-muted); }
 
-        .time-row .form-group {
-            flex: 1;
-        }
+  /* Category pills */
+  .pill-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .pill {
+    flex: 1;
+    padding: 9px 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .pill.builder.active { background: var(--builder-dim); border-color: var(--builder); color: var(--builder); }
+  .pill.learner.active { background: var(--learner-dim); border-color: var(--learner); color: var(--learner); }
+  .pill.casual.active  { background: var(--casual-dim);  border-color: var(--casual);  color: var(--casual); }
+  .pill:hover:not(.active) { border-color: var(--border-hover); color: var(--text-primary); }
 
-        button {
-            width: 100%;
-            padding: 16px;
-            border-radius: 10px;
-            border: none;
-            background: linear-gradient(to right, #7c3aed, #3b82f6);
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
-        }
+  .time-row { display: flex; gap: 10px; align-items: flex-end; }
+  .time-row .form-row { flex: 1; margin-bottom: 0; }
 
-        button:active {
-            transform: scale(0.98);
-        }
+  .time-sep {
+    color: var(--text-muted);
+    font-size: 18px;
+    padding-bottom: 10px;
+    flex-shrink: 0;
+  }
 
-        button:hover {
-            opacity: 0.9;
-        }
+  /* Save button */
+  .btn-save {
+    width: 100%;
+    padding: 13px;
+    margin-top: 14px;
+    background: var(--text-primary);
+    color: var(--bg);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-save:hover { opacity: 0.88; }
+  .btn-save:active { transform: scale(0.98); }
 
-        /* Log List Elements */
-        .log-item {
-            background: rgba(255, 255, 255, 0.6);
-            border-left: 4px solid #7c3aed;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
+  /* Distribution bar */
+  .dist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .dist-cell {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .dist-cell::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    border-radius: 0 0 0 var(--radius-sm);
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+  .dist-cell.builder::after { background: var(--builder); }
+  .dist-cell.learner::after { background: var(--learner); }
+  .dist-cell.casual::after  { background: var(--casual); }
+  .dist-cell.builder.active { background: var(--builder-dim); border-color: var(--builder); }
+  .dist-cell.learner.active { background: var(--learner-dim); border-color: var(--learner); }
+  .dist-cell.casual.active  { background: var(--casual-dim);  border-color: var(--casual); }
+  .dist-cell:hover:not(.active) { border-color: var(--border-hover); }
 
-        .log-item.builder { border-left-color: #10b981; } /* Green */
-        .log-item.learner { border-left-color: #3b82f6; } /* Blue */
-        .log-item.casual { border-left-color: #f59e0b; } /* Yellow */
+  .dist-name {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .dist-cell.builder.active .dist-name { color: var(--builder); }
+  .dist-cell.learner.active .dist-name { color: var(--learner); }
+  .dist-cell.casual.active  .dist-name { color: var(--casual); }
 
-        .log-details h3 {
-            margin: 0 0 4px 0;
-            font-size: 16px;
-            color: #1f2937;
-        }
+  .dist-pct {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .dist-mins { font-size: 11px; color: var(--text-secondary); }
 
-        .log-details p {
-            margin: 0;
-            font-size: 14px;
-            color: #4b5563;
-        }
+  /* Summary row */
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .summary-total {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+  }
 
-        .log-meta {
-            text-align: right;
-            font-size: 12px;
-            font-weight: bold;
-            color: #6b7280;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
-        }
+  /* Log items */
+  .log-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    animation: slideIn 0.25s ease;
+  }
+  .log-item:last-child { border-bottom: none; }
 
-        .category-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            text-transform: uppercase;
-            color: white;
-            background: #9ca3af;
-        }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 
-        .category-badge.builder { background: #10b981; }
-        .category-badge.learner { background: #3b82f6; }
-        .category-badge.casual { background: #f59e0b; }
+  .log-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .builder .log-dot { background: var(--builder); box-shadow: 0 0 6px var(--builder-glow); }
+  .learner .log-dot { background: var(--learner); box-shadow: 0 0 6px var(--learner-glow); }
+  .casual  .log-dot { background: var(--casual);  box-shadow: 0 0 6px var(--casual-glow); }
 
-        .clear-btn {
-            background: transparent;
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 8px;
-            margin-top: 12px;
-        }
-        
-        .clear-btn:hover {
-            background: #fef2f2;
-            opacity: 1;
-        }
-    </style>
+  .log-body { flex: 1; min-width: 0; }
+  .log-task {
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .log-meta { font-size: 11px; color: var(--text-secondary); }
+  .log-dur {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .log-cat-tag {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+  .builder .log-cat-tag { background: var(--builder-dim); color: var(--builder); }
+  .learner .log-cat-tag { background: var(--learner-dim); color: var(--learner); }
+  .casual  .log-cat-tag { background: var(--casual-dim);  color: var(--casual); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Filter clear */
+  .filter-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .filter-label { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
+  .filter-clear {
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'DM Mono', monospace;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: 0;
+  }
+  .filter-clear:hover { color: var(--text-primary); }
+
+  .btn-clear-logs {
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'DM Mono', monospace;
+    padding: 0;
+    letter-spacing: 0.04em;
+    transition: color 0.15s;
+  }
+  .btn-clear-logs:hover { color: #e24b4a; }
+
+  .confirm-banner {
+    background: rgba(226,75,74,0.08);
+    border: 1px solid rgba(226,75,74,0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    animation: slideIn 0.2s ease;
+  }
+  .confirm-msg { font-size: 12px; color: #e24b4a; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-yes {
+    font-size: 11px; font-family: 'DM Mono', monospace;
+    background: #e24b4a; color: #fff;
+    border: none; border-radius: 4px;
+    padding: 5px 10px; cursor: pointer;
+  }
+  .confirm-no {
+    font-size: 11px; font-family: 'DM Mono', monospace;
+    background: none; color: var(--text-secondary);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 5px 10px; cursor: pointer;
+  }
+  .confirm-no:hover { color: var(--text-primary); border-color: var(--border-hover); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Input time fix */
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.4);
+    cursor: pointer;
+  }
+  select option { background: #1a1a1f; }
+</style>
 </head>
 <body>
+<div class="wrap">
 
-    <div class="container">
-        
-        <div style="text-align: center; margin-bottom: 10px;">
-            <h1>LT-2.0 <span>Failsafe</span></h1>
-            <p style="color: #6b7280; margin-top: -10px;">Local Static Prototype</p>
-        </div>
+  <div class="header">
+    <h1>LT-2.0</h1>
+    <span class="header-tag">Failsafe</span>
+    <span class="live-clock" id="clock">00:00:00</span>
+  </div>
 
-        <div class="glass">
-            <h2>Add New Log</h2>
-            
-            <div class="form-group">
-                <label>Category</label>
-                <select id="category">
-                    <option value="builder">Builder</option>
-                    <option value="learner">Learner</option>
-                    <option value="casual">Casual</option>
-                </select>
-            </div>
+  <!-- Add Log Card -->
+  <div class="card">
+    <div class="card-label">New Entry</div>
 
-            <div class="form-group">
-                <label>Activity Description</label>
-                <input type="text" id="taskName" placeholder="What did you do?" autocomplete="off">
-            </div>
-
-            <div class="time-row">
-                <div class="form-group">
-                    <label>Start Time</label>
-                    <input type="time" id="startTime">
-                </div>
-                <div class="form-group">
-                    <label>End Time</label>
-                    <input type="time" id="endTime">
-                </div>
-            </div>
-
-            <button onclick="saveLog()">Save Log Local</button>
-        </div>
-
-        <div class="glass">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h2 style="margin: 0;">Today's Logs</h2>
-                <span id="totalMins" style="font-weight: bold; color: #7c3aed;">0 mins</span>
-            </div>
-            
-            <div id="logsContainer">
-                </div>
-
-            <button class="clear-btn" onclick="clearLogs()">Clear Paper-transferred Logs</button>
-        </div>
-
+    <div class="pill-row">
+      <button class="pill builder active" data-val="builder" onclick="selectCategory(this)">Builder</button>
+      <button class="pill learner"        data-val="learner" onclick="selectCategory(this)">Learner</button>
+      <button class="pill casual"         data-val="casual"  onclick="selectCategory(this)">Casual</button>
     </div>
 
-    <script>
-        // Set current time as default
-        function setDefaultTimes() {
-            const now = new Date();
-            const timeString = now.toTimeString().slice(0,5);
-            document.getElementById('endTime').value = timeString;
-            
-            // Default start time 30 mins ago
-            const start = new Date(now.getTime() - 30 * 60000);
-            document.getElementById('startTime').value = start.toTimeString().slice(0,5);
-        }
+    <div class="form-row">
+      <span class="input-label">What did you do?</span>
+      <input id="taskName" placeholder="Task description..." autocomplete="off">
+    </div>
 
-        // Initialize state
-        let logs = JSON.parse(localStorage.getItem('lt2_failsafe_logs')) || [];
-        setDefaultTimes();
-        renderLogs();
+    <div class="time-row">
+      <div class="form-row">
+        <span class="input-label">Start</span>
+        <input type="time" id="startTime">
+      </div>
+      <div class="time-sep">→</div>
+      <div class="form-row">
+        <span class="input-label">End</span>
+        <input type="time" id="endTime">
+      </div>
+    </div>
 
-        function saveLog() {
-            const category = document.getElementById('category').value;
-            const taskName = document.getElementById('taskName').value || 'Unspecified Task';
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
+    <button class="btn-save" onclick="saveLog()">Save Entry</button>
+  </div>
 
-            if(!startTime || !endTime) return alert("Please select times.");
+  <!-- Logs Card -->
+  <div class="card">
+    <div class="card-label">Session Log</div>
 
-            // Calculate duration in minutes
-            const startStr = "1970/01/01 " + startTime;
-            const endStr = "1970/01/01 " + endTime;
-            let diff = (new Date(endStr).getTime() - new Date(startStr).getTime()) / 60000;
-            if (diff < 0) diff += 24 * 60; // Handle overnight logs
+    <div class="dist-grid" id="distGrid"></div>
 
-            const newLog = {
-                id: Date.now(),
-                category,
-                taskName,
-                startTime,
-                endTime,
-                duration: diff
-            };
+    <div class="summary-row">
+      <span class="summary-label">Total logged</span>
+      <span class="summary-total" id="totalDisplay">0m</span>
+      <button class="btn-clear-logs" onclick="askClear()">audited — clear all</button>
+    </div>
 
-            // Save to array and local storage
-            logs.unshift(newLog);
-            localStorage.setItem('lt2_failsafe_logs', JSON.stringify(logs));
-            
-            // Reset input and re-render
-            document.getElementById('taskName').value = '';
-            setDefaultTimes();
-            renderLogs();
-        }
+    <div class="confirm-banner" id="confirmBanner" style="display:none;">
+      <span class="confirm-msg">Clear all logs? This cannot be undone.</span>
+      <div class="confirm-actions">
+        <button class="confirm-no"  onclick="cancelClear()">cancel</button>
+        <button class="confirm-yes" onclick="confirmClear()">yes, clear</button>
+      </div>
+    </div>
 
-        function renderLogs() {
-            const container = document.getElementById('logsContainer');
-            container.innerHTML = '';
-            let totalTime = 0;
+    <div class="filter-row" id="filterRow" style="display:none;">
+      <span class="filter-label" id="filterLabel"></span>
+      <button class="filter-clear" onclick="clearFilter()">clear filter ×</button>
+    </div>
 
-            if (logs.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#9ca3af; font-style:italic;">No logs yet. Start building.</p>';
-            }
+    <div id="logsContainer"></div>
+  </div>
 
-            logs.forEach(log => {
-                totalTime += log.duration;
-                
-                const logEl = document.createElement('div');
-                logEl.className = `log-item ${log.category}`;
-                
-                logEl.innerHTML = `
-                    <div class="log-details">
-                        <h3>${log.taskName}</h3>
-                        <p>${log.startTime} - ${log.endTime}</p>
-                    </div>
-                    <div class="log-meta">
-                        <span class="category-badge ${log.category}">${log.category}</span>
-                        <span>${log.duration} mins</span>
-                    </div>
-                `;
-                container.appendChild(logEl);
-            });
+</div>
 
-            // Update Total
-            document.getElementById('totalMins').innerText = `${totalTime} mins`;
-        }
+<script>
+  let logs = JSON.parse(localStorage.getItem('lt2_logs') || '[]');
+  let activeFilter = null;
+  let selectedCategory = 'builder';
 
-        function clearLogs() {
-            if(confirm("Are you sure? Only do this if you've noted them down on paper!")) {
-                logs = [];
-                localStorage.removeItem('lt2_failsafe_logs');
-                renderLogs();
-            }
-        }
-    </script>
+  const taskEl  = document.getElementById('taskName');
+  const startEl = document.getElementById('startTime');
+  const endEl   = document.getElementById('endTime');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function setDefaultTimes(){
+    const now = new Date();
+    const end = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const s = new Date(now - 30*60000);
+    const start = `${pad(s.getHours())}:${pad(s.getMinutes())}`;
+    startEl.value = start;
+    endEl.value = end;
+  }
+
+  function clockTick(){
+    const n = new Date();
+    document.getElementById('clock').textContent =
+      `${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  }
+  setInterval(clockTick, 1000);
+  clockTick();
+
+  function selectCategory(el){
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    selectedCategory = el.dataset.val;
+  }
+
+  function saveLog(){
+    const taskName  = taskEl.value.trim() || 'Untitled task';
+    const startTime = startEl.value;
+    const endTime   = endEl.value;
+    if(!startTime || !endTime) return;
+
+    let diff = (new Date('1970-01-01 '+endTime) - new Date('1970-01-01 '+startTime)) / 60000;
+    if(diff < 0) diff += 1440;
+    diff = Math.round(diff);
+
+    logs.unshift({ category: selectedCategory, taskName, startTime, endTime, duration: diff });
+    localStorage.setItem('lt2_logs', JSON.stringify(logs));
+
+    // next start = end + 1 min
+    let next = new Date('1970-01-01 '+endTime);
+    next.setMinutes(next.getMinutes() + 1);
+    startEl.value = `${pad(next.getHours())}:${pad(next.getMinutes())}`;
+    endEl.value   = startEl.value;
+    taskEl.value  = '';
+    taskEl.focus();
+
+    render();
+  }
+
+  taskEl.addEventListener('keydown', e => { if(e.key === 'Enter') saveLog(); });
+
+  function clearFilter(){
+    activeFilter = null;
+    render();
+  }
+
+  function askClear(){
+    if(logs.length === 0) return;
+    document.getElementById('confirmBanner').style.display = 'flex';
+  }
+  function cancelClear(){
+    document.getElementById('confirmBanner').style.display = 'none';
+  }
+  function confirmClear(){
+    logs = [];
+    localStorage.removeItem('lt2_logs');
+    document.getElementById('confirmBanner').style.display = 'none';
+    activeFilter = null;
+    render();
+  }
+
+  function formatDur(m){
+    if(m < 60) return `${m}m`;
+    return `${Math.floor(m/60)}h ${m%60}m`;
+  }
+
+  function render(){
+    const container = document.getElementById('logsContainer');
+    const distGrid  = document.getElementById('distGrid');
+    const filterRow = document.getElementById('filterRow');
+    const filterLabel = document.getElementById('filterLabel');
+
+    let total = 0;
+    let cat = { builder:0, learner:0, casual:0 };
+    logs.forEach(l => { total += l.duration; cat[l.category] += l.duration; });
+
+    // Distribution cells
+    distGrid.innerHTML = '';
+    ['builder','learner','casual'].forEach(c => {
+      const mins = cat[c];
+      const pct  = total ? Math.round(mins/total*100) : 0;
+      const cell = document.createElement('div');
+      cell.className = `dist-cell ${c}${activeFilter===c?' active':''}`;
+      cell.innerHTML = `
+        <div class="dist-name">${c}</div>
+        <div class="dist-pct">${pct}%</div>
+        <div class="dist-mins">${formatDur(mins)}</div>
+      `;
+      cell.onclick = () => {
+        activeFilter = activeFilter === c ? null : c;
+        render();
+      };
+      distGrid.appendChild(cell);
+
+      // animate bar after paint
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          cell.style.setProperty('--bar-w', pct+'%');
+          cell.style.cssText += ``;
+          const pseudo = cell.querySelector ? cell : cell;
+          pseudo.style.setProperty('--w', pct+'%');
+        });
+      });
+    });
+
+    // animate bottom bars via JS since we can't do pseudo-element transitions via JS
+    setTimeout(() => {
+      document.querySelectorAll('.dist-cell').forEach(cell => {
+        const c = ['builder','learner','casual'].find(x => cell.classList.contains(x));
+        const pct = total ? Math.round(cat[c]/total*100) : 0;
+        cell.style.boxShadow = `inset 0 -2px 0 0 ${pct > 0 ? `var(--${c})` : 'transparent'}`;
+        cell.style.backgroundImage = `linear-gradient(to right, var(--${c}-dim) ${pct}%, transparent ${pct}%)`;
+        cell.style.backgroundSize = '100% 3px';
+        cell.style.backgroundRepeat = 'no-repeat';
+        cell.style.backgroundPosition = 'bottom';
+      });
+    }, 50);
+
+    // Total
+    document.getElementById('totalDisplay').textContent = formatDur(total);
+
+    // Filter row
+    if(activeFilter){
+      filterRow.style.display = 'flex';
+      filterLabel.textContent = `Showing: ${activeFilter}`;
+    } else {
+      filterRow.style.display = 'none';
+    }
+
+    // Logs
+    container.innerHTML = '';
+    const filtered = activeFilter ? logs.filter(l => l.category === activeFilter) : logs;
+
+    if(filtered.length === 0){
+      container.innerHTML = `<div class="empty-state">no entries yet</div>`;
+      return;
+    }
+
+    filtered.forEach(l => {
+      const el = document.createElement('div');
+      el.className = `log-item ${l.category}`;
+      el.innerHTML = `
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-task">${l.taskName}<span class="log-cat-tag">${l.category}</span></div>
+          <div class="log-meta">${l.startTime} → ${l.endTime}</div>
+        </div>
+        <div class="log-dur">${formatDur(l.duration)}</div>
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  setDefaultTimes();
+  render();
+</script>
 </body>
 </html>
