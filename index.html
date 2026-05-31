@@ -418,18 +418,23 @@
       <span class="input-label">What did you do?</span>
       <input id="taskName" placeholder="Task description..." autocomplete="off">
     </div>
-
-    <div class="time-row">
-      <div class="form-row">
-        <span class="input-label">Start</span>
-        <input type="time" id="startTime">
-      </div>
-      <div class="time-sep">→</div>
-      <div class="form-row">
-        <span class="input-label">End</span>
-        <input type="time" id="endTime">
-      </div>
+   <div class="time-row">
+  <div class="form-row">
+    <span class="input-label">Start</span>
+    <div style="display:flex; gap:6px;">
+      <input type="time" id="startTime">
+      <button onclick="stampNow('start')">now</button>
     </div>
+  </div>
+  <div class="time-sep">→</div>
+  <div class="form-row">
+    <span class="input-label">End</span>
+    <div style="display:flex; gap:6px;">
+      <input type="time" id="endTime">
+      <button onclick="stampNow('end')">now</button>
+    </div>
+  </div>
+</div>
 
     <button class="btn-save" onclick="saveLog()">Save Entry</button>
   </div>
@@ -497,6 +502,13 @@
     el.classList.add('active');
     selectedCategory = el.dataset.val;
   }
+
+ function stampNow(which) {
+  const n = new Date();
+  const t = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+  if (which === 'start') document.getElementById('startTime').value = t;
+  else document.getElementById('endTime').value = t;
+}
 
   function saveLog(){
     const taskName  = taskEl.value.trim() || 'Untitled task';
