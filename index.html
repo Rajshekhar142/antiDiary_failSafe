@@ -128,6 +128,22 @@
   }
   input::placeholder { color: var(--text-muted); }
 
+  button {
+    font-family: 'DM Mono', monospace;
+  }
+
+  .stamp-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 0 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .stamp-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
   /* Category pills */
   .pill-row {
     display: flex;
@@ -183,6 +199,68 @@
   .btn-save:hover { opacity: 0.88; }
   .btn-save:active { transform: scale(0.98); }
 
+  /* Day navigator */
+  .day-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .day-nav-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .day-nav-btn:hover:not(:disabled) { border-color: var(--border-hover); color: var(--text-primary); }
+  .day-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .day-label-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .day-label {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .day-sub { font-size: 10px; color: var(--text-muted); margin-left: 8px; }
+  #dayPicker {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    padding: 0;
+  }
+  .today-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .today-btn:hover { color: var(--text-primary); border-color: var(--border-hover); }
+
   /* Distribution bar */
   .dist-grid {
     display: grid;
@@ -200,18 +278,6 @@
     position: relative;
     overflow: hidden;
   }
-  .dist-cell::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0;
-    height: 2px;
-    width: 0%;
-    border-radius: 0 0 0 var(--radius-sm);
-    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-  }
-  .dist-cell.builder::after { background: var(--builder); }
-  .dist-cell.learner::after { background: var(--learner); }
-  .dist-cell.casual::after  { background: var(--casual); }
   .dist-cell.builder.active { background: var(--builder-dim); border-color: var(--builder); }
   .dist-cell.learner.active { background: var(--learner-dim); border-color: var(--learner); }
   .dist-cell.casual.active  { background: var(--casual-dim);  border-color: var(--casual); }
@@ -382,13 +448,41 @@
   }
   .confirm-no:hover { color: var(--text-primary); border-color: var(--border-hover); }
 
+  /* 30-day history strip */
+  .history-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .history-scroll::-webkit-scrollbar { height: 4px; }
+  .hist-day {
+    flex-shrink: 0;
+    width: 40px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hist-day:hover { border-color: var(--border-hover); }
+  .hist-day.selected { border-color: var(--text-primary); }
+  .hist-day.empty { opacity: 0.35; }
+  .hist-dow { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .hist-date { font-size: 12px; font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 4px; }
+  .hist-bar { height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
+  .hist-bar-fill { height: 100%; background: var(--text-secondary); }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
   /* Input time fix */
-  input[type="time"]::-webkit-calendar-picker-indicator {
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.4);
     cursor: pointer;
   }
@@ -418,41 +512,60 @@
       <span class="input-label">What did you do?</span>
       <input id="taskName" placeholder="Task description..." autocomplete="off">
     </div>
-   <div class="time-row">
-  <div class="form-row">
-    <span class="input-label">Start</span>
-    <div style="display:flex; gap:6px;">
-      <input type="time" id="startTime">
-      <button onclick="stampNow('start')">now</button>
+    <div class="time-row">
+      <div class="form-row">
+        <span class="input-label">Start</span>
+        <div style="display:flex; gap:6px;">
+          <input type="time" id="startTime">
+          <button class="stamp-btn" onclick="stampNow('start')">now</button>
+        </div>
+      </div>
+      <div class="time-sep">→</div>
+      <div class="form-row">
+        <span class="input-label">End</span>
+        <div style="display:flex; gap:6px;">
+          <input type="time" id="endTime">
+          <button class="stamp-btn" onclick="stampNow('end')">now</button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="time-sep">→</div>
-  <div class="form-row">
-    <span class="input-label">End</span>
-    <div style="display:flex; gap:6px;">
-      <input type="time" id="endTime">
-      <button onclick="stampNow('end')">now</button>
-    </div>
-  </div>
-</div>
 
     <button class="btn-save" onclick="saveLog()">Save Entry</button>
   </div>
 
+  <!-- History strip -->
+  <div class="card">
+    <div class="card-label">Last 30 Days</div>
+    <div class="history-scroll" id="historyScroll"></div>
+  </div>
+
   <!-- Logs Card -->
   <div class="card">
-    <div class="card-label">Session Log</div>
+    <div class="card-label">Daily Log</div>
+
+    <div class="day-nav">
+      <button class="day-nav-btn" onclick="shiftDay(-1)">‹</button>
+      <div class="day-label-wrap">
+        <div>
+          <span class="day-label" id="dayLabel">Today</span>
+          <span class="day-sub" id="daySub"></span>
+        </div>
+        <input type="date" id="dayPicker" onchange="pickDay(this.value)">
+      </div>
+      <button class="day-nav-btn" id="nextDayBtn" onclick="shiftDay(1)">›</button>
+      <button class="today-btn" id="todayBtn" onclick="goToday()" style="display:none;">today</button>
+    </div>
 
     <div class="dist-grid" id="distGrid"></div>
 
     <div class="summary-row">
       <span class="summary-label">Total logged</span>
       <span class="summary-total" id="totalDisplay">0m</span>
-      <button class="btn-clear-logs" onclick="askClear()">audited — clear all</button>
+      <button class="btn-clear-logs" onclick="askClear()">clear this day</button>
     </div>
 
     <div class="confirm-banner" id="confirmBanner" style="display:none;">
-      <span class="confirm-msg">Clear all logs? This cannot be undone.</span>
+      <span class="confirm-msg" id="confirmMsg">Clear this day's logs? This cannot be undone.</span>
       <div class="confirm-actions">
         <button class="confirm-no"  onclick="cancelClear()">cancel</button>
         <button class="confirm-yes" onclick="confirmClear()">yes, clear</button>
@@ -470,15 +583,48 @@
 </div>
 
 <script>
-  let logs = JSON.parse(localStorage.getItem('lt2_logs') || '[]');
+  const STORAGE_KEY = 'lt2_logs';
+  const HISTORY_DAYS = 30;
+
+  // Migrate old flat-log format (no date field) by stamping them with today's date once.
+  let logs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  let migrated = false;
+  logs.forEach(l => { if (!l.date) { l.date = todayStr(); migrated = true; } });
+  if (migrated) persist();
+
   let activeFilter = null;
   let selectedCategory = 'builder';
+  let selectedDate = todayStr();
 
   const taskEl  = document.getElementById('taskName');
   const startEl = document.getElementById('startTime');
   const endEl   = document.getElementById('endTime');
+  const dayPicker = document.getElementById('dayPicker');
 
   function pad(n){ return String(n).padStart(2,'0'); }
+
+  function todayStr(){
+    const n = new Date();
+    return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+  }
+
+  function dateFromStr(s){
+    const [y,m,d] = s.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+
+  function shiftDateStr(s, deltaDays){
+    const d = dateFromStr(s);
+    d.setDate(d.getDate() + deltaDays);
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function persist(){
+    // keep only last HISTORY_DAYS worth of entries
+    const cutoff = shiftDateStr(todayStr(), -(HISTORY_DAYS - 1));
+    logs = logs.filter(l => l.date >= cutoff);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+  }
 
   function setDefaultTimes(){
     const now = new Date();
@@ -503,12 +649,12 @@
     selectedCategory = el.dataset.val;
   }
 
- function stampNow(which) {
-  const n = new Date();
-  const t = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
-  if (which === 'start') document.getElementById('startTime').value = t;
-  else document.getElementById('endTime').value = t;
-}
+  function stampNow(which){
+    const n = new Date();
+    const t = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
+    if (which === 'start') startEl.value = t;
+    else endEl.value = t;
+  }
 
   function saveLog(){
     const taskName  = taskEl.value.trim() || 'Untitled task';
@@ -520,8 +666,9 @@
     if(diff < 0) diff += 1440;
     diff = Math.round(diff);
 
-    logs.unshift({ category: selectedCategory, taskName, startTime, endTime, duration: diff });
-    localStorage.setItem('lt2_logs', JSON.stringify(logs));
+    // entries are always logged against today's real date
+    logs.unshift({ date: todayStr(), category: selectedCategory, taskName, startTime, endTime, duration: diff });
+    persist();
 
     // next start = end + 1 min
     let next = new Date('1970-01-01 '+endTime);
@@ -531,6 +678,8 @@
     taskEl.value  = '';
     taskEl.focus();
 
+    // jump view to today so the new entry is visible
+    selectedDate = todayStr();
     render();
   }
 
@@ -541,16 +690,41 @@
     render();
   }
 
+  function shiftDay(delta){
+    const next = shiftDateStr(selectedDate, delta);
+    if (next > todayStr()) return;
+    selectedDate = next;
+    activeFilter = null;
+    render();
+  }
+
+  function pickDay(val){
+    if (!val) return;
+    if (val > todayStr()) val = todayStr();
+    selectedDate = val;
+    activeFilter = null;
+    render();
+  }
+
+  function goToday(){
+    selectedDate = todayStr();
+    activeFilter = null;
+    render();
+  }
+
   function askClear(){
-    if(logs.length === 0) return;
+    const dayLogs = logs.filter(l => l.date === selectedDate);
+    if(dayLogs.length === 0) return;
+    document.getElementById('confirmMsg').textContent =
+      `Clear logs for ${formatDayLabel(selectedDate)}? This cannot be undone.`;
     document.getElementById('confirmBanner').style.display = 'flex';
   }
   function cancelClear(){
     document.getElementById('confirmBanner').style.display = 'none';
   }
   function confirmClear(){
-    logs = [];
-    localStorage.removeItem('lt2_logs');
+    logs = logs.filter(l => l.date !== selectedDate);
+    persist();
     document.getElementById('confirmBanner').style.display = 'none';
     activeFilter = null;
     render();
@@ -561,15 +735,65 @@
     return `${Math.floor(m/60)}h ${m%60}m`;
   }
 
+  function formatDayLabel(dateStr){
+    const today = todayStr();
+    const yesterday = shiftDateStr(today, -1);
+    if (dateStr === today) return 'Today';
+    if (dateStr === yesterday) return 'Yesterday';
+    const d = dateFromStr(dateStr);
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function renderHistoryStrip(){
+    const strip = document.getElementById('historyScroll');
+    strip.innerHTML = '';
+    const today = todayStr();
+
+    // totals per day for scaling bars
+    const totals = {};
+    logs.forEach(l => { totals[l.date] = (totals[l.date] || 0) + l.duration; });
+    const maxTotal = Math.max(1, ...Object.values(totals));
+
+    const days = [];
+    for (let i = HISTORY_DAYS - 1; i >= 0; i--) days.push(shiftDateStr(today, -i));
+
+    days.forEach(dateStr => {
+      const d = dateFromStr(dateStr);
+      const mins = totals[dateStr] || 0;
+      const cell = document.createElement('div');
+      cell.className = `hist-day${mins===0?' empty':''}${dateStr===selectedDate?' selected':''}`;
+      cell.innerHTML = `
+        <div class="hist-dow">${d.toLocaleDateString(undefined,{weekday:'narrow'})}</div>
+        <div class="hist-date">${d.getDate()}</div>
+        <div class="hist-bar"><div class="hist-bar-fill" style="width:${Math.round(mins/maxTotal*100)}%"></div></div>
+      `;
+      cell.title = `${formatDayLabel(dateStr)} — ${formatDur(mins)}`;
+      cell.onclick = () => { selectedDate = dateStr; activeFilter = null; render(); };
+      strip.appendChild(cell);
+    });
+
+    // auto-scroll to the right (today) on first render
+    strip.scrollLeft = strip.scrollWidth;
+  }
+
   function render(){
     const container = document.getElementById('logsContainer');
     const distGrid  = document.getElementById('distGrid');
     const filterRow = document.getElementById('filterRow');
     const filterLabel = document.getElementById('filterLabel');
 
+    // day nav state
+    document.getElementById('dayLabel').textContent = formatDayLabel(selectedDate);
+    document.getElementById('daySub').textContent = selectedDate;
+    dayPicker.value = selectedDate;
+    document.getElementById('nextDayBtn').disabled = selectedDate >= todayStr();
+    document.getElementById('todayBtn').style.display = selectedDate === todayStr() ? 'none' : 'inline-block';
+
+    const dayLogs = logs.filter(l => l.date === selectedDate);
+
     let total = 0;
     let cat = { builder:0, learner:0, casual:0 };
-    logs.forEach(l => { total += l.duration; cat[l.category] += l.duration; });
+    dayLogs.forEach(l => { total += l.duration; cat[l.category] += l.duration; });
 
     // Distribution cells
     distGrid.innerHTML = '';
@@ -583,35 +807,16 @@
         <div class="dist-pct">${pct}%</div>
         <div class="dist-mins">${formatDur(mins)}</div>
       `;
+      cell.style.backgroundImage = `linear-gradient(to right, var(--${c}-dim) ${pct}%, transparent ${pct}%)`;
+      cell.style.backgroundSize = '100% 3px';
+      cell.style.backgroundRepeat = 'no-repeat';
+      cell.style.backgroundPosition = 'bottom';
       cell.onclick = () => {
         activeFilter = activeFilter === c ? null : c;
         render();
       };
       distGrid.appendChild(cell);
-
-      // animate bar after paint
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          cell.style.setProperty('--bar-w', pct+'%');
-          cell.style.cssText += ``;
-          const pseudo = cell.querySelector ? cell : cell;
-          pseudo.style.setProperty('--w', pct+'%');
-        });
-      });
     });
-
-    // animate bottom bars via JS since we can't do pseudo-element transitions via JS
-    setTimeout(() => {
-      document.querySelectorAll('.dist-cell').forEach(cell => {
-        const c = ['builder','learner','casual'].find(x => cell.classList.contains(x));
-        const pct = total ? Math.round(cat[c]/total*100) : 0;
-        cell.style.boxShadow = `inset 0 -2px 0 0 ${pct > 0 ? `var(--${c})` : 'transparent'}`;
-        cell.style.backgroundImage = `linear-gradient(to right, var(--${c}-dim) ${pct}%, transparent ${pct}%)`;
-        cell.style.backgroundSize = '100% 3px';
-        cell.style.backgroundRepeat = 'no-repeat';
-        cell.style.backgroundPosition = 'bottom';
-      });
-    }, 50);
 
     // Total
     document.getElementById('totalDisplay').textContent = formatDur(total);
@@ -626,26 +831,27 @@
 
     // Logs
     container.innerHTML = '';
-    const filtered = activeFilter ? logs.filter(l => l.category === activeFilter) : logs;
+    const filtered = activeFilter ? dayLogs.filter(l => l.category === activeFilter) : dayLogs;
 
     if(filtered.length === 0){
-      container.innerHTML = `<div class="empty-state">no entries yet</div>`;
-      return;
+      container.innerHTML = `<div class="empty-state">no entries for this day</div>`;
+    } else {
+      filtered.forEach(l => {
+        const el = document.createElement('div');
+        el.className = `log-item ${l.category}`;
+        el.innerHTML = `
+          <div class="log-dot"></div>
+          <div class="log-body">
+            <div class="log-task">${l.taskName}<span class="log-cat-tag">${l.category}</span></div>
+            <div class="log-meta">${l.startTime} → ${l.endTime}</div>
+          </div>
+          <div class="log-dur">${formatDur(l.duration)}</div>
+        `;
+        container.appendChild(el);
+      });
     }
 
-    filtered.forEach(l => {
-      const el = document.createElement('div');
-      el.className = `log-item ${l.category}`;
-      el.innerHTML = `
-        <div class="log-dot"></div>
-        <div class="log-body">
-          <div class="log-task">${l.taskName}<span class="log-cat-tag">${l.category}</span></div>
-          <div class="log-meta">${l.startTime} → ${l.endTime}</div>
-        </div>
-        <div class="log-dur">${formatDur(l.duration)}</div>
-      `;
-      container.appendChild(el);
-    });
+    renderHistoryStrip();
   }
 
   setDefaultTimes();
